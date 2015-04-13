@@ -3,20 +3,24 @@ import simplejson
 import ast
 
 class Review(object):
-	def __init__(self, text=None, raw=None, sa=None, adjusted=None):
+	def __init__(self, text=None, raw=None, sentiment=None, 
+		adjusted=None, rescore=None):
 		self.text = text
 		self.raw = raw
-		self.sa = sa
+		self.sentiment = sentiment
 		self.adjusted = adjusted
+		self.rescore = rescore
 
 	def __str__(self):
 		out = ""
 		if self.raw is not None:
 			out += "raw score: %f\n" % self.raw
-		if self.sa is not None:
-			out += "sa score: %f\n" % self.sa
+		if self.sentiment is not None:
+			out += "sentiment score: %f\n" % self.sentiment
 		if self.adjusted is not None:
 			out += "adjusted score: %f\n" % self.adjusted
+		if self.rescore is not None:
+			out += "human rescore: %f\n" % self.rescore
 		if self.text is not None:
 			out += "text:\n%s\n" % self.text
 		return out
@@ -48,14 +52,22 @@ def extract_reviews(filename, zipped=False, max_reviews=None):
 	i = 0
 	for e in parse(filename, zipped=zipped):
 		i += 1
-		if max_reviews is not None and i >= max_reviews:
+		if max_reviews is not None and i > max_reviews:
 			break
 		print "Parsing review %d" % i
 		
 		parsed = simplejson.dumps(e)
 		if parsed != '{}':
 			full_review = ast.literal_eval(parsed)
-			review = Review(text=full_review['review/text'], raw=float(full_review['review/score']))
+			if full_review.has_key('review/rescore'):
+				rescore = float(full_review['review/rescore']) 
+			else:
+				rescore = 0.
+			review = Review(
+				text=full_review['review/text'], 
+				raw=float(full_review['review/score']),
+				rescore=rescore)
+			
 			# print review
 			reviews.append(review)
 

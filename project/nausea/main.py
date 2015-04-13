@@ -74,8 +74,9 @@ def _r2(x, y):
 	ss_res = np.sum(np.power(x-y,2))
 	return 1-(ss_res/ss_tot)
 
-def plot_results(raw_scores, sa_scores, adjusted_scores):
-	review_data = np.vstack([raw_scores, sa_scores, adjusted_scores])
+def plot_output(raw_scores, sa_scores, adjusted_scores, human_rescores):
+	review_data = np.vstack([
+		raw_scores, sa_scores, adjusted_scores, human_rescores])
 	review_data.T.sort(axis=0)
 
 	font = {'family' : 'normal',
@@ -88,7 +89,7 @@ def plot_results(raw_scores, sa_scores, adjusted_scores):
 	pyplot.ylim((0,6))
 	pyplot.title('Review Score Adjustments')
 	pyplot.plot(review_data.T)
-	pyplot.legend(['Raw', 'Sentiment', 'Adjusted'], loc=4)
+	pyplot.legend(['Raw', 'Sentiment', 'NAUSEA', 'Human'], loc=4)
 	pyplot.xlabel('Review Index')
 	pyplot.ylabel('Score')
 	cc_raw_sa = np.corrcoef(review_data[0,:], review_data[1,:])[0,1]
@@ -96,22 +97,46 @@ def plot_results(raw_scores, sa_scores, adjusted_scores):
 	pyplot.text(20, 5.5, 'Raw-Sentiment corr: %1.2f' % cc_raw_sa)
 	pyplot.text(20, 5.1, 'Raw-Adjusted corr:   %1.2f' % cc_raw_adj)
 
+	# import ipdb;ipdb.set_trace()
+
+def plot_validation(raw_scores, sa_scores, adjusted_scores, human_rescores, max_reviews=5):
+	review_data = np.vstack([
+		raw_scores, sa_scores, adjusted_scores, human_rescores])
+	font = {'family' : 'normal',
+			'weight' : 'bold',
+			'size'   : 18}
+	rc('font', **font)
+	colors = ['b','g','r','c','m','y']
+			
 	# generate validation plot
-	# TODO: need Chad's scores to do this
-	import ipdb;ipdb.set_trace()
+	n_bars = 4
+	n_revs = min(review_data.shape[1], max_reviews)
+	pyplot.interactive(True)
+	pyplot.ylim((0,6))
+	ind = np.arange(n_revs)
+	
+	width = 1./n_bars - 0.1/n_bars
+	for i in range(n_bars):
+		pyplot.bar(ind + i*width, review_data[i,0:max_reviews], width, color=colors[i])
+	pyplot.xticks(np.arange(3)+width*n_bars/2, ['Rev %d ' %i for i in np.arange(n_revs)+1])
+	pyplot.legend(['Raw', 'Sentiment', 'NAUSEA', 'Human'], loc=0)
+
+	# import ipdb;ipdb.set_trace()
 
 if __name__ == '__main__':
-	max_reviews = 500
+	max_reviews = 10
 	# all_reviews = extract_reviews('reviews/example_review.txt', 
 	# 	zipped=False, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('reviews/Arts.txt.gz', 
 	# 	zipped=True, max_reviews=max_reviews)
-	all_reviews = extract_reviews('reviews/Cell_Phones_&_Accessories.txt', 
-		zipped=False, max_reviews=max_reviews)
+	# all_reviews = extract_reviews('reviews/Cell_Phones_&_Accessories.txt', 
+	# 	zipped=False, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('reviews/Automotive.txt', 
 	# 	zipped=False, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('reviews/Movies_&_TV.txt.gz', 
 	# 	zipped=True, max_reviews=max_reviews)
+	all_reviews = extract_reviews('reviews/7wonders.txt', 
+		zipped=False, max_reviews=max_reviews)
 
 	# create piper to obtain sentiment analysis results	
 	piper = NLPPiper()
@@ -120,6 +145,7 @@ if __name__ == '__main__':
 	raw_scores = []
 	sa_scores = []
 	adjusted_scores = []
+	human_rescores = []
 	i = 0
 	for review in all_reviews:
 		print "Processing review %d... " % i,
@@ -136,15 +162,17 @@ if __name__ == '__main__':
 		raw_score = review.raw
 		review_dist = flatten_multi_sent_reviews(review_sa_scores)
 		adjusted_score, sa_score = get_adjusted_score(raw_score, review_dist)
+		rescore = review.rescore if review.rescore is not None else 0.
 
 		# plug into review struct
-		review.sa = sa_score
+		review.sentiment = sa_score
 		review.adjusted = adjusted_score
 		
 		# add to list and continue
 		raw_scores.append(raw_score)
 		sa_scores.append(sa_score)
 		adjusted_scores.append(adjusted_score)
+		human_rescores.append(rescore)
 
 		print "adjusted score: %f" % adjusted_score
 		i+=1
@@ -152,5 +180,10 @@ if __name__ == '__main__':
 	print "raw scores: \n", raw_scores
 	print "sentiment analysis scores: \n", sa_scores
 	print "final adjusted scores: \n", adjusted_scores
-	plot_results(raw_scores, sa_scores, adjusted_scores)
+	pyplot.figure()
+	plot_output(raw_scores, sa_scores, adjusted_scores, human_rescores)
+	pyplot.figure()
+	plot_validation(raw_scores, sa_scores, adjusted_scores, 
+		human_rescores, max_reviews=3)
+	import ipdb;ipdb.set_trace()
 	
