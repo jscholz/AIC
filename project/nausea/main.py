@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright (c) 2008-2012, Georgia Tech Research Corporation
 # All rights reserved.
 #
@@ -42,56 +44,85 @@ Created on April 10, 2015
 '''
 
 import glob
+import time
+import numpy as np
+from matplotlib import pyplot, interactive
 
 from snlp_pipe import NLPPiper
 from nausea_model import flatten_multi_sent_reviews, get_adjusted_score
+from parser import extract_reviews
 
-def load_review(path):
+def get_review_sentences(text):
 	'''
 	Loads the review at the specified path and returns a list
 	contain each sentence of the review
 	'''
-	f = open(path)
-	lines = f.readlines()
-	f.close()
-
-	# split into sentences
-	sentences = " ".join(lines).split('.')
+	# split into sentences and return with newlines
+	sentences = text.split('.')
 	return [sent+".\n" for sent in sentences if len(sent) > 0]
 
-def find_reviews(rootdir, wexp=None):	
-	if wexp is None:
-		wexp = '*'
-	path = rootdir + '/' + wexp
+# def find_reviews(rootdir, wexp=None):	
+# 	if wexp is None:
+# 		wexp = '*'
+# 	path = rootdir + '/' + wexp
+# 	return glob.glob(path)
 
-	return glob.glob(path)
+def plot_results(raw_scores, sa_scores, adjusted_scores):
+	review_data = np.vstack([raw_scores, sa_scores, adjusted_scores])
+	review_data.T.sort(axis=0)
+
+	pyplot.interactive(True)
+	pyplot.ylim((0,6))
+	pyplot.title('Review Score Adjustments')
+	pyplot.plot(review_data.T)
+	pyplot.legend(['raw', 'sentiment', 'adjusted'])
+	import ipdb;ipdb.set_trace()
 
 if __name__ == '__main__':
+	all_reviews = extract_reviews('reviews/example_review.txt', 
+		zipped=False, max_reviews=50)
+	# all_reviews = extract_reviews('reviews/Arts.txt.gz', 
+		# zipped=True, max_reviews=50)
 
+	# create piper to obtain sentiment analysis results	
 	piper = NLPPiper()
-
-	all_reviews = find_reviews('reviews/')
+	# time.sleep(2)
 
 	# process all reviews
 	raw_scores = []
 	sa_scores = []
 	adjusted_scores = []
+	i = 0
 	for review in all_reviews:
+		print "Processing review %d... " % i,
 		# obtain review scores for each sentence in the review
-		sentences = load_review(review)
+		sentences = get_review_sentences(review.text)
 		review_sa_scores = []
 		for sent in sentences:
+			# import ipdb;ipdb.set_trace()
 			piper.send_review(sent)
 			output_str = piper.get_result_str()
 			review_sa_scores.append(piper.parse_result_str(output_str))
 
 		# obtain adjusted overall score
+		raw_score = review.raw
 		review_dist = flatten_multi_sent_reviews(review_sa_scores)
-		adjusted_score, sa_score = get_adjusted_score(3, review_dist)
+		adjusted_score, sa_score = get_adjusted_score(raw_score, review_dist)
+
+		# plug into review struct
+		review.sa = sa_score
+		review.adjusted = adjusted_score
 		
 		# add to list and continue
+		raw_scores.append(raw_score)
 		sa_scores.append(sa_score)
 		adjusted_scores.append(adjusted_score)
 
+		print "adjusted score: %f" % adjusted_score
+		i+=1
 
-	import ipdb;ipdb.set_trace()	
+	print "raw scores: \n", raw_scores
+	print "sentiment analysis scores: \n", sa_scores
+	print "final adjusted scores: \n", adjusted_scores
+	plot_results(raw_scores, sa_scores, adjusted_scores)
+	
