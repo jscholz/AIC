@@ -1,0 +1,63 @@
+\title{Entropy-Based Refinment of Textual Review Scores Using Sentiment Analysis}
+\author{
+        Jonathan Scholz \and Kaushik Subramanian \and Chad Stolper\\
+        Department of Computer Science\\
+        Georgia Institute of Technology\\
+        801 Atlantic Dr., Atlanta GA 30332, \underline{USA}
+}
+\date{\today}
+
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This is the paper's abstract \ldots
+\end{abstract}
+
+\section{Entropy}
+% pad = 1e-10
+% xp = np.array(x) + pad
+% xpmf = xp/np.sum(xp)
+% unif = np.ones(len(x))/len(x)
+% norm = -np.sum(unif * np.log2(unif))
+% return -np.sum(xpmf * np.log2(xpmf))/norm
+
+\begin{equation}
+	H(x) = -\frac{1}{Z}\sum_{i=1}^k (x_i log_2(x_i)), \quad Z=-\sum_{i=1}^k \left(\frac{1}{k} log_2 \left(\frac{1}{k}\right)\right)
+\end{equation}
+
+
+\section{Confidence Function}
+% conf_func: np.power(1 - np.power(x, beta), 1./beta)  ## ellipsoidal version
+% out = alpha * conf_func(entropy(x), beta=beta)
+
+\begin{equation}
+	C(x; \alpha, \beta) = \alpha (1-x^\beta)^{\left(\frac{1}{\beta}\right)}
+\end{equation}
+
+
+\section{Score Adjustment}
+% out = raw + confidence(sentiment_dist) * (np.sum(np.arange(1,len(sentiment_dist)+1) * sentiment_dist) - raw)
+
+% explanation:
+% same as td-update rule -- does linear combination of raw and sentiment score
+% weighted by confidence.  
+% s_i is ith score, x is sentiment distribution, and sum thingy is expectation of sentiment analysis
+\begin{equation}
+	A(r, x) = r + C(x) \left(\sum_{i=1}^k \left( s_i x_i\right) - r \right)
+\end{equation}
+
+\begin{align}
+	A(r, x) &= (1-C(x)) r + C(x) \left(\sum_{i=1}^k \left( s_i x_i\right) \right)\\
+	&= r - C(x)(r) + C(x) \left(\sum_{i=1}^k \left( s_i x_i\right) \right)\\
+	&= r + C(x) \left(\sum_{i=1}^k \left( s_i x_i\right) - r \right)
+\end{align}
+
+
+\bibliographystyle{abbrv}
+\bibliography{main}
+
+\end{document}
