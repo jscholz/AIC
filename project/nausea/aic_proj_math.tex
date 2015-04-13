@@ -26,7 +26,7 @@ This is the paper's abstract \ldots
 % return -np.sum(xpmf * np.log2(xpmf))/norm
 
 \begin{equation}
-	H(x) = -\frac{1}{Z}\sum_{i=1}^k (x_i log_2(x_i)), \quad Z=-\sum_{i=1}^k \left(\frac{1}{k} log_2 \left(\frac{1}{k}\right)\right)
+	H(s) = -\frac{1}{Z}\sum_{i=1}^k (P(s_i) log_2(P(s_i))), \quad Z=-\sum_{i=1}^k \left(\frac{1}{k} log_2 \left(\frac{1}{k}\right)\right)
 \end{equation}
 
 
@@ -35,7 +35,7 @@ This is the paper's abstract \ldots
 % out = alpha * conf_func(entropy(x), beta=beta)
 
 \begin{equation}
-	C(x; \alpha, \beta) = \alpha (1-x^\beta)^{\left(\frac{1}{\beta}\right)}
+	C(s; \alpha, \beta) = \alpha (1-s^\beta)^{\left(\frac{1}{\beta}\right)}
 \end{equation}
 
 
@@ -47,13 +47,13 @@ This is the paper's abstract \ldots
 % weighted by confidence.  
 % s_i is ith score, x is sentiment distribution, and sum thingy is expectation of sentiment analysis
 \begin{equation}
-	A(r, x) = r + C(x) \left(\sum_{i=1}^k \left( s_i x_i\right) - r \right)
+	A(r, s) = r + C(s) \left(\sum_{i=1}^k \left( s_i P(s_i)\right) - r \right)
 \end{equation}
 
 \begin{align}
-	A(r, x) &= (1-C(x)) r + C(x) \left(\sum_{i=1}^k \left( s_i x_i\right) \right)\\
-	&= r - C(x)(r) + C(x) \left(\sum_{i=1}^k \left( s_i x_i\right) \right)\\
-	&= r + C(x) \left(\sum_{i=1}^k \left( s_i x_i\right) - r \right)
+	A(r, s) &= (1-C(s)) r + C(s) \left(\sum_{i=1}^k \left( s_i P(s_i)\right) \right)\\
+	&= r - C(s)(r) + C(s) \left(\sum_{i=1}^k \left( s_i P(s_i)\right) \right)\\
+	&= r + C(s) \left(\sum_{i=1}^k \left( s_i P(s_i)\right) - r \right)
 \end{align}
 
 

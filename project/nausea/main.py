@@ -46,7 +46,7 @@ Created on April 10, 2015
 import glob
 import time
 import numpy as np
-from matplotlib import pyplot, interactive
+from matplotlib import pyplot, interactive, rc
 
 from snlp_pipe import NLPPiper
 from nausea_model import flatten_multi_sent_reviews, get_adjusted_score
@@ -67,26 +67,54 @@ def get_review_sentences(text):
 # 	path = rootdir + '/' + wexp
 # 	return glob.glob(path)
 
+def _r2(x, y):
+	"""Computes an r^2 statistic given x,y"""
+	xbar = np.mean(x)
+	ss_tot = np.sum(np.power(x-xbar,2))
+	ss_res = np.sum(np.power(x-y,2))
+	return 1-(ss_res/ss_tot)
+
 def plot_results(raw_scores, sa_scores, adjusted_scores):
 	review_data = np.vstack([raw_scores, sa_scores, adjusted_scores])
 	review_data.T.sort(axis=0)
 
+	font = {'family' : 'normal',
+			'weight' : 'bold',
+			'size'   : 18}
+	rc('font', **font)
+			
+	# generate "regression to the mean" plot
 	pyplot.interactive(True)
 	pyplot.ylim((0,6))
 	pyplot.title('Review Score Adjustments')
 	pyplot.plot(review_data.T)
-	pyplot.legend(['raw', 'sentiment', 'adjusted'])
+	pyplot.legend(['Raw', 'Sentiment', 'Adjusted'], loc=4)
+	pyplot.xlabel('Review Index')
+	pyplot.ylabel('Score')
+	cc_raw_sa = np.corrcoef(review_data[0,:], review_data[1,:])[0,1]
+	cc_raw_adj = np.corrcoef(review_data[0,:], review_data[2,:])[0,1]
+	pyplot.text(20, 5.5, 'Raw-Sentiment corr: %1.2f' % cc_raw_sa)
+	pyplot.text(20, 5.1, 'Raw-Adjusted corr:   %1.2f' % cc_raw_adj)
+
+	# generate validation plot
+	# TODO: need Chad's scores to do this
 	import ipdb;ipdb.set_trace()
 
 if __name__ == '__main__':
-	all_reviews = extract_reviews('reviews/example_review.txt', 
-		zipped=False, max_reviews=50)
+	max_reviews = 500
+	# all_reviews = extract_reviews('reviews/example_review.txt', 
+	# 	zipped=False, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('reviews/Arts.txt.gz', 
-		# zipped=True, max_reviews=50)
+	# 	zipped=True, max_reviews=max_reviews)
+	all_reviews = extract_reviews('reviews/Cell_Phones_&_Accessories.txt', 
+		zipped=False, max_reviews=max_reviews)
+	# all_reviews = extract_reviews('reviews/Automotive.txt', 
+	# 	zipped=False, max_reviews=max_reviews)
+	# all_reviews = extract_reviews('reviews/Movies_&_TV.txt.gz', 
+	# 	zipped=True, max_reviews=max_reviews)
 
 	# create piper to obtain sentiment analysis results	
 	piper = NLPPiper()
-	# time.sleep(2)
 
 	# process all reviews
 	raw_scores = []

@@ -52,8 +52,8 @@ score and the analysis score.
 '''
 
 import numpy as np
-from pylab import *
-
+from matplotlib import pyplot, interactive, rc
+# from pylab import *
 
 def entropy(x):
 	'''
@@ -135,3 +135,29 @@ def get_adjusted_score(raw, sentiment_dist, scores=None):
 	sa_score = np.sum(scores * sentiment_dist)
 	adjusted_score = raw + confidence(sentiment_dist) * (sa_score - raw)
 	return adjusted_score, sa_score
+
+def plot_confidence(beta, color):
+	
+	x = np.linspace(0, 1, 50)
+	c = conf_func(x, beta)
+	pyplot.plot(x, c, color=color)
+	# import ipdb;ipdb.set_trace()
+
+if __name__ == '__main__':
+	values = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 10]
+	colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
+	
+	interactive(True)	
+	font = {'family' : 'normal',
+			'weight' : 'bold',
+			'size'   : 18}
+	rc('font', **font)
+
+	for i,beta in enumerate(values):
+		# pyplot.figure()
+		plot_confidence(beta, color=colors[i])
+	pyplot.legend([str(v) for v in values], loc=3)
+	pyplot.title('Sentiment Confidence vs. Entropy')
+	pyplot.xlabel('Entropy')
+	pyplot.ylabel('Confidence')
+	import ipdb;ipdb.set_trace()
