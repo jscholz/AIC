@@ -124,7 +124,7 @@ def plot_validation(raw_scores, sa_scores, adjusted_scores, human_rescores, max_
 	# import ipdb;ipdb.set_trace()
 
 if __name__ == '__main__':
-	max_reviews = 10
+	max_reviews = 30
 	# all_reviews = extract_reviews('reviews/example_review.txt', 
 	# 	zipped=False, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('reviews/Arts.txt.gz', 
@@ -135,7 +135,7 @@ if __name__ == '__main__':
 	# 	zipped=False, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('reviews/Movies_&_TV.txt.gz', 
 	# 	zipped=True, max_reviews=max_reviews)
-	all_reviews = extract_reviews('reviews/7wonders.txt', 
+	all_reviews = extract_reviews('reviews/7wonders-real.txt', 
 		zipped=False, max_reviews=max_reviews)
 
 	# create piper to obtain sentiment analysis results	
