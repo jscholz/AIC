@@ -46,6 +46,11 @@ def parse(filename, zipped=False):
 		entry[eName] = rest
 	yield entry
 
+def _get_field_safely(review_dict, key, cast_type):
+	try:
+		return cast_type(review_dict[key])
+	except:
+		return cast_type(0)
 
 def extract_reviews(filename, zipped=False, max_reviews=None):
 	reviews = []
@@ -59,14 +64,11 @@ def extract_reviews(filename, zipped=False, max_reviews=None):
 		parsed = simplejson.dumps(e)
 		if parsed != '{}':
 			full_review = ast.literal_eval(parsed)
-			if full_review.has_key('review/rescore'):
-				rescore = float(full_review['review/rescore']) 
-			else:
-				rescore = 0.
+
 			review = Review(
-				text=full_review['review/text'], 
-				raw=float(full_review['review/score']),
-				rescore=rescore)
+				text=_get_field_safely(full_review, 'review/text', str), 
+				raw=_get_field_safely(full_review, 'review/score', float),
+				rescore=_get_field_safely(full_review, 'review/rescore', float))
 			
 			# print review
 			reviews.append(review)
@@ -76,7 +78,8 @@ def extract_reviews(filename, zipped=False, max_reviews=None):
 if __name__ == '__main__':
 	# rev = extract_reviews('reviews/example_review.txt', zipped=False)
 	# rev = extract_reviews('reviews/Cell_Phones_&_Accessories.txt', zipped=False)
-	rev = extract_reviews('reviews/Arts.txt.gz', zipped=True)
+	# rev = extract_reviews('reviews/Arts.txt.gz', zipped=True)
+	rev = extract_reviews('reviews/Movies_&_TV_2k.txt.gz', zipped=True)
 			
 	import ipdb;ipdb.set_trace()
 	

@@ -85,12 +85,12 @@ def plot_output(raw_scores, sa_scores, adjusted_scores, human_rescores):
 	rc('font', **font)
 			
 	# generate "regression to the mean" plot
-	pyplot.interactive(True)
+	pyplot.figure()
 	pyplot.ylim((0,6))
 	pyplot.title('Review Score Adjustments')
 	pyplot.plot(review_data.T)
 	pyplot.legend(['Raw', 'Sentiment', 'NAUSEA', 'Human'], loc=4)
-	pyplot.xlabel('Review Index')
+	pyplot.xlabel('Sorted Review Index')
 	pyplot.ylabel('Score')
 	cc_raw_sa = np.corrcoef(review_data[0,:], review_data[1,:])[0,1]
 	cc_raw_adj = np.corrcoef(review_data[0,:], review_data[2,:])[0,1]
@@ -111,32 +111,34 @@ def plot_validation(raw_scores, sa_scores, adjusted_scores, human_rescores, max_
 	# generate validation plot
 	n_bars = 4
 	n_revs = min(review_data.shape[1], max_reviews)
-	pyplot.interactive(True)
+	pyplot.figure()
 	pyplot.ylim((0,6))
 	ind = np.arange(n_revs)
 	
 	width = 1./n_bars - 0.1/n_bars
 	for i in range(n_bars):
 		pyplot.bar(ind + i*width, review_data[i,0:max_reviews], width, color=colors[i])
-	pyplot.xticks(np.arange(3)+width*n_bars/2, ['Rev %d ' %i for i in np.arange(n_revs)+1])
+	pyplot.xticks(np.arange(n_revs)+width*n_bars/2, ['%d ' %i for i in np.arange(n_revs)+1])
 	pyplot.legend(['Raw', 'Sentiment', 'NAUSEA', 'Human'], loc=0)
+	pyplot.ylabel('Score')
+	pyplot.xlabel('Review Index')
 
-	# import ipdb;ipdb.set_trace()
+	import ipdb;ipdb.set_trace()
 
 if __name__ == '__main__':
-	max_reviews = 10
+	max_reviews = 1500
 	# all_reviews = extract_reviews('reviews/example_review.txt', 
 	# 	zipped=False, max_reviews=max_reviews)
-	# all_reviews = extract_reviews('reviews/Arts.txt.gz', 
+	# all_reviews = extract_reviews('~/Downloads/amazon_reviews/Arts.txt.gz', 
 	# 	zipped=True, max_reviews=max_reviews)
-	# all_reviews = extract_reviews('reviews/Cell_Phones_&_Accessories.txt', 
-	# 	zipped=False, max_reviews=max_reviews)
-	# all_reviews = extract_reviews('reviews/Automotive.txt', 
-	# 	zipped=False, max_reviews=max_reviews)
-	# all_reviews = extract_reviews('reviews/Movies_&_TV.txt.gz', 
+	# all_reviews = extract_reviews('~/Downloads/amazon_reviews/Cell_Phones_&_Accessories.txt.gz', 
 	# 	zipped=True, max_reviews=max_reviews)
-	all_reviews = extract_reviews('reviews/7wonders.txt', 
-		zipped=False, max_reviews=max_reviews)
+	# all_reviews = extract_reviews('~/Downloads/amazon_reviews/Automotive.txt.gz', 
+	# 	zipped=True, max_reviews=max_reviews)
+	all_reviews = extract_reviews('/Users/jscholz/Downloads/amazon_reviews/Movies_&_TV.txt.gz', 
+		zipped=True, max_reviews=max_reviews)
+	# all_reviews = extract_reviews('reviews/7wonders.txt', 
+		# zipped=False, max_reviews=max_reviews)
 
 	# create piper to obtain sentiment analysis results	
 	piper = NLPPiper()
@@ -180,10 +182,11 @@ if __name__ == '__main__':
 	print "raw scores: \n", raw_scores
 	print "sentiment analysis scores: \n", sa_scores
 	print "final adjusted scores: \n", adjusted_scores
-	pyplot.figure()
+
+	pyplot.interactive(True)
 	plot_output(raw_scores, sa_scores, adjusted_scores, human_rescores)
-	pyplot.figure()
 	plot_validation(raw_scores, sa_scores, adjusted_scores, 
-		human_rescores, max_reviews=3)
+		human_rescores, max_reviews=5)
+
 	import ipdb;ipdb.set_trace()
 	
