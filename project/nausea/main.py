@@ -142,7 +142,7 @@ def plot_validation(raw_scores, sa_scores, adjusted_scores, human_rescores, max_
 	return good_idxs, bad_idxs
 
 if __name__ == '__main__':
-	max_reviews = 30
+	max_reviews = 1000
 	# all_reviews = extract_reviews('reviews/example_review.txt', 
 	# 	zipped=False, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('~/Downloads/amazon_reviews/Arts.txt.gz', 
@@ -151,12 +151,12 @@ if __name__ == '__main__':
 	# 	zipped=True, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('~/Downloads/amazon_reviews/Automotive.txt.gz', 
 	# 	zipped=True, max_reviews=max_reviews)
-	# all_reviews = extract_reviews('/Users/jscholz/Downloads/amazon_reviews/Movies_&_TV.txt.gz', 
-		# zipped=True, max_reviews=max_reviews)
+	all_reviews = extract_reviews('/Users/jscholz/Downloads/amazon_reviews/Movies_&_TV.txt.gz', 
+		zipped=True, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('reviews/7wonders.txt', 
 		# zipped=False, max_reviews=max_reviews)
-	all_reviews = extract_reviews('reviews/7wonders-real.txt', 
-		zipped=False, max_reviews=max_reviews)
+	# all_reviews = extract_reviews('reviews/7wonders-real.txt', 
+		# zipped=False, max_reviews=max_reviews)
 
 	# create piper to obtain sentiment analysis results	
 	piper = NLPPiper()
@@ -205,7 +205,8 @@ if __name__ == '__main__':
 	plot_output(raw_scores, sa_scores, adjusted_scores, human_rescores)
 	good_idxs, bad_idxs = plot_validation(raw_scores, sa_scores, adjusted_scores, 
 		human_rescores, max_reviews=30)
-
+	import ipdb;ipdb.set_trace()
+	
 	print "-" * 60
 	print "Text for reviews in which NAUSEA model outperformed raw scores: "
 	for idx in good_idxs:
