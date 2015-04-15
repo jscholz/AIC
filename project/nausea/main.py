@@ -47,10 +47,38 @@ import glob
 import time
 import numpy as np
 from matplotlib import pyplot, interactive, rc
+from matplotlib.colors import colorConverter
 
 from snlp_pipe import NLPPiper
 from nausea_model import flatten_multi_sent_reviews, get_adjusted_score
 from parser import extract_reviews
+
+
+# From http://matplotlib.org/1.4.2/examples/pylab_examples/colours.html
+def pastel(colour, weight=2.4):
+    """ Convert colour into a nice pastel shade"""
+    rgb = np.asarray(colorConverter.to_rgb(colour))
+    # scale colour
+    maxc = max(rgb)
+    if maxc < 1.0 and maxc > 0:
+        # scale colour
+        scale = 1.0 / maxc
+        rgb = rgb * scale
+    # now decrease saturation
+    total = rgb.sum()
+    slack = 0
+    for x in rgb:
+        slack += 1.0 - x
+
+    # want to increase weight from total to weight
+    # pick x s.t.  slack * x == weight - total
+    # x = (weight - total) / slack
+    x = (weight - total) / slack
+
+    rgb = [c + (x * (1.0-c)) for c in rgb]
+
+    return rgb
+
 
 def get_review_sentences(text):
 	'''
@@ -108,6 +136,7 @@ def plot_validation(raw_scores, sa_scores, adjusted_scores, human_rescores, max_
 			'size'   : 18}
 	rc('font', **font)
 	colors = ['b','g','r','c','m','y']
+	colors = [pastel(x) for x in colors]
 			
 	# generate validation plot
 	n_bars = 4
@@ -201,7 +230,7 @@ if __name__ == '__main__':
 	print "sentiment analysis scores: \n", sa_scores
 	print "final adjusted scores: \n", adjusted_scores
 
-	pyplot.interactive(True)
+	# pyplot.interactive(True)
 	plot_output(raw_scores, sa_scores, adjusted_scores, human_rescores)
 	good_idxs, bad_idxs = plot_validation(raw_scores, sa_scores, adjusted_scores, 
 		human_rescores, max_reviews=30)
@@ -231,5 +260,6 @@ if __name__ == '__main__':
 		np.array(adjusted_scores)[bad_idxs], 
 		np.array(human_rescores)[bad_idxs], max_reviews=30)
 
-	import ipdb;ipdb.set_trace()
+	# import ipdb;ipdb.set_trace()
+	pyplot.show()
 	
