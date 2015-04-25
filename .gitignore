@@ -1,2 +1,7 @@
 project/nausea/stanford-corenlp*
 *.pyc
+*.aux
+*.fdb_latexmk
+*.log
+*.synctex.gz
+*.DS_Store
