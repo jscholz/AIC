@@ -45,6 +45,7 @@ Created on April 10, 2015
 
 import glob
 import time
+import pickle
 import numpy as np
 from matplotlib import pyplot, interactive, rc
 from matplotlib.colors import colorConverter
@@ -105,7 +106,9 @@ def _r2(x, y):
 def plot_output(raw_scores, sa_scores, adjusted_scores, human_rescores):
 	review_data = np.vstack([
 		raw_scores, sa_scores, adjusted_scores, human_rescores])
-	review_data.T.sort(axis=0)
+	
+	# sort all reviews by increasing raw score
+	review_data = review_data[:, review_data[0,:].argsort()]
 
 	font = {'family' : 'normal',
 			'weight' : 'bold',
@@ -171,6 +174,7 @@ def plot_validation(raw_scores, sa_scores, adjusted_scores, human_rescores, max_
 	return good_idxs, bad_idxs
 
 if __name__ == '__main__':
+	
 	max_reviews = 1000
 	# all_reviews = extract_reviews('reviews/example_review.txt', 
 	# 	zipped=False, max_reviews=max_reviews)
@@ -180,62 +184,73 @@ if __name__ == '__main__':
 	# 	zipped=True, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('~/Downloads/amazon_reviews/Automotive.txt.gz', 
 	# 	zipped=True, max_reviews=max_reviews)
-	all_reviews = extract_reviews('/Users/jscholz/Downloads/amazon_reviews/Movies_&_TV.txt.gz', 
-		zipped=True, max_reviews=max_reviews)
+	# all_reviews = extract_reviews('/Users/jscholz/Downloads/amazon_reviews/Movies_&_TV.txt.gz', 
+	# 	zipped=True, max_reviews=max_reviews)
 	# all_reviews = extract_reviews('reviews/7wonders.txt', 
-		# zipped=False, max_reviews=max_reviews)
-	# all_reviews = extract_reviews('reviews/7wonders-real.txt', 
-		# zipped=False, max_reviews=max_reviews)
+	# 	zipped=False, max_reviews=max_reviews)
+	all_reviews = extract_reviews('reviews/7wonders-real.txt', 
+		zipped=False, max_reviews=max_reviews)
 
-	# create piper to obtain sentiment analysis results	
-	piper = NLPPiper()
+	if False:
+		# create piper to obtain sentiment analysis results	
+		piper = NLPPiper()
 
-	# process all reviews
-	raw_scores = []
-	sa_scores = []
-	adjusted_scores = []
-	human_rescores = []
-	i = 0
-	for review in all_reviews:
-		print "Processing review %d... " % i,
-		# obtain review scores for each sentence in the review
-		sentences = get_review_sentences(review.text)
-		review_sa_scores = []
-		for sent in sentences:
-			# import ipdb;ipdb.set_trace()
-			piper.send_review(sent)
-			output_str = piper.get_result_str()
-			review_sa_scores.append(piper.parse_result_str(output_str))
+		# process all reviews
+		raw_scores = []
+		sa_scores = []
+		sa_dists = []
+		adjusted_scores = []
+		human_rescores = []
+		i = 0
+		for review in all_reviews:
+			print "Processing review %d... " % i,
+			# obtain review scores for each sentence in the review
+			sentences = get_review_sentences(review.text)
+			review_sa_scores = []
+			for sent in sentences:
+				# import ipdb;ipdb.set_trace()
+				piper.send_review(sent)
+				output_str = piper.get_result_str()
+				review_sa_scores.append(piper.parse_result_str(output_str))
 
-		# obtain adjusted overall score
-		raw_score = review.raw
-		review_dist = flatten_multi_sent_reviews(review_sa_scores)
-		adjusted_score, sa_score = get_adjusted_score(raw_score, review_dist)
-		rescore = review.rescore if review.rescore is not None else 0.
+			# obtain adjusted overall score
+			raw_score = review.raw
+			review_dist = flatten_multi_sent_reviews(review_sa_scores)
+			adjusted_score, sa_score = get_adjusted_score(raw_score, review_dist, alpha=0.322, beta=43.6)
+			rescore = review.rescore if review.rescore is not None else 0.
 
-		# plug into review struct
-		review.sentiment = sa_score
-		review.adjusted = adjusted_score
-		
-		# add to list and continue
-		raw_scores.append(raw_score)
-		sa_scores.append(sa_score)
-		adjusted_scores.append(adjusted_score)
-		human_rescores.append(rescore)
+			# plug into review struct
+			review.sentiment = sa_score
+			review.adjusted = adjusted_score
+			
+			# add to list and continue
+			raw_scores.append(raw_score)
+			sa_scores.append(sa_score)
+			sa_dists.append(review_dist)
+			adjusted_scores.append(adjusted_score)
+			human_rescores.append(rescore)
 
-		print "adjusted score: %f" % adjusted_score
-		i+=1
+			print "adjusted score: %f" % adjusted_score
+			i+=1
+
+		# f = open('7wonders.pkl', 'w+')
+		# pickle.dump((raw_scores, sa_scores, sa_dists, adjusted_scores, human_rescores), f)
+		# f.close()
+	else:
+		f = open('7wonders.pkl')
+		raw_scores, sa_scores, sa_dists, adjusted_scores, human_rescores = pickle.load(f)
+		f.close()
 
 	print "raw scores: \n", raw_scores
 	print "sentiment analysis scores: \n", sa_scores
 	print "final adjusted scores: \n", adjusted_scores
 
-	# pyplot.interactive(True)
+	pyplot.interactive(True)
 	plot_output(raw_scores, sa_scores, adjusted_scores, human_rescores)
 	good_idxs, bad_idxs = plot_validation(raw_scores, sa_scores, adjusted_scores, 
 		human_rescores, max_reviews=30)
-	import ipdb;ipdb.set_trace()
-	
+	# import ipdb;ipdb.set_trace()
+
 	print "-" * 60
 	print "Text for reviews in which NAUSEA model outperformed raw scores: "
 	for idx in good_idxs:
@@ -260,6 +275,6 @@ if __name__ == '__main__':
 		np.array(adjusted_scores)[bad_idxs], 
 		np.array(human_rescores)[bad_idxs], max_reviews=30)
 
-	# import ipdb;ipdb.set_trace()
-	pyplot.show()
+	import ipdb;ipdb.set_trace()
+	# pyplot.show()
 	

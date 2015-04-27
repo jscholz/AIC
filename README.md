@@ -1,4 +1,16 @@
 
+NAUSEA, short for "Numerical Adjustment Using Sentiment Entropy Analysis",
+is a package for re-scoring numerical reviews using the output of a 
+stochastic sentiment analysis pipeline.  Its intended application is for
+massaging review scores on sites such as Amazon.com and Rottentomates.com
+in which users provide both text and review scores (which don't always agree).
+Typically the review text is for human consumption only, but with the advent 
+of NLP tools for sentiment analysis, it is now possible to use this textual
+information to refine the numerical evaluation of the reviewed products.  
+
+NAUSEA implements a simple model for score adjustment which uses a non-linear 
+entropy
+
 
 This software was tested on a 2013 macbook pro running OSX 10.10.2
 
